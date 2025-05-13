@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CodeRunner_Maui.MainPage"
+             xmlns:local="clr-namespace:CodeRunner_Maui">
+
+    <Grid>
+        <GraphicsView x:Name="graphicsView"
+                     HorizontalOptions="Fill"
+                     VerticalOptions="Fill" />
+
+        <!-- Kontrolki w lewym dolnym rogu -->
+        <AbsoluteLayout VerticalOptions="End"
+                       HorizontalOptions="Start"
+                       Margin="20">
+            <HorizontalStackLayout Spacing="15">
+                <Button Text="←" 
+                       Clicked="OnLeftClicked" 
+                       WidthRequest="60"
+                       HeightRequest="60"
+                       CornerRadius="30"
+                       FontSize="20"/>
+
+                <VerticalStackLayout Spacing="10">
+                    <Button Text="↑" 
+                           Clicked="OnUpClicked" 
+                           WidthRequest="60"
+                           HeightRequest="60"
+                           CornerRadius="30"
+                           FontSize="20"/>
+                    <Button Text="↓" 
+                           Clicked="OnDownClicked" 
+                           WidthRequest="60"
+                           HeightRequest="60"
+                           CornerRadius="30"
+                           FontSize="20"/>
+                </VerticalStackLayout>
+
+                <Button Text="→" 
+                       Clicked="OnRightClicked" 
+                       WidthRequest="60"
+                       HeightRequest="60"
+                       CornerRadius="30"
+                       FontSize="20"/>
+            </HorizontalStackLayout>
+        </AbsoluteLayout>
+    </Grid>
+</ContentPage>
