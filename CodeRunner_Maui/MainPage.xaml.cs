@@ -93,6 +93,9 @@ namespace CodeRunner_Maui
                 {
                     bool moved = false;
 
+                    _plansza.UpdateEnemies();
+                    graphicsView.Invalidate();
+
                     switch (_currentDirection)
                     {
                         case Direction.Up:

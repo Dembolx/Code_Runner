@@ -26406,11 +26406,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\admin\\Desktop\\CodeRunner_Maui\\CodeRunner_Maui.csproj",
+      "projectUniqueName": "C:\\Users\\admin\\Desktop\\Code_Runner\\CodeRunner_Maui\\CodeRunner_Maui.csproj",
       "projectName": "CodeRunner_Maui",
-      "projectPath": "C:\\Users\\admin\\Desktop\\CodeRunner_Maui\\CodeRunner_Maui.csproj",
+      "projectPath": "C:\\Users\\admin\\Desktop\\Code_Runner\\CodeRunner_Maui\\CodeRunner_Maui.csproj",
       "packagesPath": "C:\\Users\\admin\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\admin\\Desktop\\CodeRunner_Maui\\obj\\",
+      "outputPath": "C:\\Users\\admin\\Desktop\\Code_Runner\\CodeRunner_Maui\\obj\\",
       "projectStyle": "PackageReference",
       "crossTargeting": true,
       "fallbackFolders": [

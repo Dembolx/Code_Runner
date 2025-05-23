@@ -56,12 +56,54 @@ namespace CodeRunner_Maui.Klasy
         public void SetPlayer(Player player)
         {
             Player = player;
-
-            // Ustaw gracza na początkowej pozycji ścieżki
             PlacePlayerOnPath();
-
-            // Inicjalizuj pozycję kamery po ustawieniu gracza
             UpdateCameraPosition();
+            SpawnEnemies(3); // Dodaj 3 przeciwników
+        }
+
+        private void SpawnEnemies(int count)
+        {
+            _enemies.Clear();
+            for (int i = 0; i < count; i++)
+            {
+                var position = FindRandomPathPosition();
+                if (position.HasValue)
+                {
+                    _enemies.Add(new Enemy(this, position.Value.X, position.Value.Y));
+                }
+            }
+        }
+
+        private (float X, float Y)? FindRandomPathPosition()
+        {
+            List<(int row, int col)> pathCells = new List<(int row, int col)>();
+
+            for (int row = 0; row < Rows; row++)
+            {
+                for (int col = 0; col < Cols; col++)
+                {
+                    if (Grid[row, col] == CellType.Path)
+                    {
+                        pathCells.Add((row, col));
+                    }
+                }
+            }
+
+            if (pathCells.Count == 0) return null;
+
+            var cell = pathCells[Random.Next(pathCells.Count)];
+            float x = cell.col * CellSize + (CellSize - 32) / 2;
+            float y = cell.row * CellSize + (CellSize - 32) / 2;
+
+            return (x, y);
+        }
+
+        public void UpdateEnemies()
+        {
+            foreach (var enemy in _enemies)
+            {
+                enemy.Update();
+            }
         }
 
         // Metoda sprawdzająca, czy dana pozycja jest ścieżką
@@ -302,6 +344,17 @@ namespace CodeRunner_Maui.Klasy
 
             // Rysuj gracza z uwzględnieniem przesunięcia kamery
             DrawPlayer(canvas);
+
+            DrawEnemies(canvas);
+            DrawPlayer(canvas);
+        }
+
+        private void DrawEnemies(ICanvas canvas)
+        {
+            foreach (var enemy in _enemies)
+            {
+                enemy.Draw(canvas, CameraOffsetX, CameraOffsetY);
+            }
         }
 
         private void DrawBackground(ICanvas canvas, RectF dirtyRect)
@@ -371,6 +424,17 @@ namespace CodeRunner_Maui.Klasy
             canvas.StrokeColor = Colors.Black;
             canvas.StrokeSize = 2;
             canvas.DrawRectangle(adjustedX, adjustedY, Player.Width, Player.Height);
+        }
+
+        private List<Enemy> _enemies = new List<Enemy>();
+
+        // Dodaj tę metodę do sprawdzania ruchu dla przeciwników
+        public bool CanMoveTo(float x, float y, int width, int height)
+        {
+            return IsPath(x, y) &&
+                   IsPath(x + width - 1, y) &&
+                   IsPath(x, y + height - 1) &&
+                   IsPath(x + width - 1, y + height - 1);
         }
     }
 }
