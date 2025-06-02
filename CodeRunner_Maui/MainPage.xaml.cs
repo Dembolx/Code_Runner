@@ -93,7 +93,7 @@ namespace CodeRunner_Maui
                 {
                     bool moved = false;
 
-                    _plansza.UpdateEnemies();
+                    _plansza.UpdateAllEnemies();
                     graphicsView.Invalidate();
 
                     switch (_currentDirection)

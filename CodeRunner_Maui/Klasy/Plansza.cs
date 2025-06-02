@@ -33,6 +33,9 @@ namespace CodeRunner_Maui.Klasy
 
         private Random Random { get; set; }
 
+
+        private Shoot _shootSystem;
+
         public Plansza(int rows, int cols, int cellSize, int pathWidth = 1)
         {
             Rows = rows;
@@ -42,8 +45,88 @@ namespace CodeRunner_Maui.Klasy
             Grid = new CellType[rows, cols];
             Random = new Random();
 
+            // Initialize shooting system
+            _shootSystem = new Shoot(this);
+
             // Generowanie planszy
             GenerateMaze();
+        }
+
+        public void SpawnEnemies(int maxEnemies)
+        {
+            _enemies.Clear();
+            int enemyCount = Random.Next(3, maxEnemies + 2);
+
+            for (int i = 0; i < enemyCount; i++)
+            {
+                var position = FindRandomPathPosition();
+                if (!position.HasValue) continue;
+
+                Enemy enemy;
+                int enemyType = Random.Next(1, 100);
+
+                if (enemyType <= 0) // 40% chance for basic enemy
+                {
+                    enemy = new BasicEnemy(this, position.Value.X, position.Value.Y, Player);
+                }
+                else if (enemyType <= 90) // 30% chance for shooting woman
+                {
+                    // Pass the shooting system to the ShootingWomanEnemy
+                    enemy = new ShootingWomanEnemy(this, position.Value.X, position.Value.Y, Player, _shootSystem);
+                }
+                else // 30% chance for chasing dog
+                {
+                    enemy = new ChasingDogEnemy(this, position.Value.X, position.Value.Y, Player);
+                }
+
+                _enemies.Add(enemy);
+            }
+        }
+
+        public void UpdateAllEnemies()
+        {
+            foreach (var enemy in _enemies)
+            {
+                enemy.Update();
+            }
+
+            // Update bullets
+            _shootSystem.Update(Player, _enemies);
+
+            // Remove inactive enemies
+            _enemies.RemoveAll(e => !e.IsActive);
+        }
+
+        public void Draw(ICanvas canvas, RectF dirtyRect)
+        {
+            // ... existing drawing code ...
+
+            // Draw maze, player, enemies as before
+            if (_viewportWidth != (int)dirtyRect.Width || _viewportHeight != (int)dirtyRect.Height)
+            {
+                SetViewportSize((int)dirtyRect.Width, (int)dirtyRect.Height);
+                if (Player != null)
+                {
+                    UpdateCameraPosition();
+                }
+            }
+
+            DrawBackground(canvas, dirtyRect);
+            DrawMaze(canvas, dirtyRect);
+            DrawEnemies(canvas);
+            DrawPlayer(canvas);
+
+            // Draw bullets on top of everything
+            _shootSystem.Draw(canvas, CameraOffsetX, CameraOffsetY);
+        }
+
+        // Add this method to allow player shooting (optional)
+        public void PlayerShoot(Direction direction)
+        {
+            if (Player != null)
+            {
+                _shootSystem.ShootBullet(Player.X, Player.Y, direction, false, 5.0f);
+            }
         }
 
         // Ustawienie wymiarów widocznego obszaru (viewport)
@@ -59,19 +142,6 @@ namespace CodeRunner_Maui.Klasy
             PlacePlayerOnPath();
             UpdateCameraPosition();
             SpawnEnemies(3); // Dodaj 3 przeciwników
-        }
-
-        private void SpawnEnemies(int count)
-        {
-            _enemies.Clear();
-            for (int i = 0; i < count; i++)
-            {
-                var position = FindRandomPathPosition();
-                if (position.HasValue)
-                {
-                    _enemies.Add(new Enemy(this, position.Value.X, position.Value.Y));
-                }
-            }
         }
 
         private (float X, float Y)? FindRandomPathPosition()
@@ -96,14 +166,6 @@ namespace CodeRunner_Maui.Klasy
             float y = cell.row * CellSize + (CellSize - 32) / 2;
 
             return (x, y);
-        }
-
-        public void UpdateEnemies()
-        {
-            foreach (var enemy in _enemies)
-            {
-                enemy.Update();
-            }
         }
 
         // Metoda sprawdzająca, czy dana pozycja jest ścieżką
@@ -321,32 +383,6 @@ namespace CodeRunner_Maui.Klasy
                     Grid[row, col] = CellType.Path;
                 }
             }
-        }
-
-        public void Draw(ICanvas canvas, RectF dirtyRect)
-        {
-            // Aktualizacja wymiarów widocznego obszaru, jeśli się zmieniły
-            if (_viewportWidth != (int)dirtyRect.Width || _viewportHeight != (int)dirtyRect.Height)
-            {
-                SetViewportSize((int)dirtyRect.Width, (int)dirtyRect.Height);
-                // Aktualizuj pozycję kamery po zmianie rozmiaru okna
-                if (Player != null)
-                {
-                    UpdateCameraPosition();
-                }
-            }
-
-            // Rysuj tło
-            DrawBackground(canvas, dirtyRect);
-
-            // Rysuj siatkę planszy z uwzględnieniem przesunięcia kamery
-            DrawMaze(canvas, dirtyRect);
-
-            // Rysuj gracza z uwzględnieniem przesunięcia kamery
-            DrawPlayer(canvas);
-
-            DrawEnemies(canvas);
-            DrawPlayer(canvas);
         }
 
         private void DrawEnemies(ICanvas canvas)
