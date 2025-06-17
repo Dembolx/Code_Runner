@@ -51,6 +51,9 @@ namespace CodeRunner_Maui
             _movementTimer.Elapsed += OnMovementTimerTick;
             _movementTimer.AutoReset = true;
 
+            _plansza.EnemiesChanged += UpdateEnemiesCountLabel;
+            UpdateEnemiesCountLabel();
+
             // Nasłuchuj zmian rozmiaru okna/ekranu
             SizeChanged += MainPage_SizeChanged;
         }
@@ -151,6 +154,15 @@ namespace CodeRunner_Maui
                 _cameraOffsetY += (targetOffsetY - _cameraOffsetY) * smoothing;
             }
         }
+
+        private void UpdateEnemiesCountLabel()
+        {
+            if (_plansza != null)
+            {
+                EnemiesCountLabel.Text = $"Przeciwnicy: {_plansza.EnemiesCount}";
+            }
+        }
+
 
         // Obsługa przycisków kierunkowych
         private void OnUpClicked(object sender, EventArgs e) => _currentDirection = Direction.Up;

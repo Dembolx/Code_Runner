@@ -16,6 +16,8 @@ namespace CodeRunner_Maui.Klasy
         public int Cols { get; private set; }
         private int CellSize { get; set; }
         private Player Player { get; set; }
+        public int EnemiesCount => _enemies.Count;
+
 
         // Tablica przechowująca typ każdej komórki (ściana lub ścieżka)
         private CellType[,] Grid { get; set; }
@@ -57,7 +59,7 @@ namespace CodeRunner_Maui.Klasy
             _enemies.Clear();
             int enemyCount = Random.Next(3, maxEnemies + 2);
 
-            for (int i = 0; i < enemyCount; i++)
+            for (int i = 0; i < 2; i++)
             {
                 var position = FindRandomPathPosition();
                 if (!position.HasValue) continue;
@@ -69,7 +71,7 @@ namespace CodeRunner_Maui.Klasy
                 {
                     enemy = new BasicEnemy(this, position.Value.X, position.Value.Y, Player);
                 }
-                else if (enemyType <= 90) // 30% chance for shooting woman
+                else if (enemyType <= 1) // 30% chance for shooting woman
                 {
                     // Pass the shooting system to the ShootingWomanEnemy
                     enemy = new ShootingWomanEnemy(this, position.Value.X, position.Value.Y, Player, _shootSystem);
@@ -85,16 +87,10 @@ namespace CodeRunner_Maui.Klasy
 
         public void UpdateAllEnemies()
         {
-            foreach (var enemy in _enemies)
+            foreach (var enemy in _enemies.ToList())
             {
                 enemy.Update();
             }
-
-            // Update bullets
-            _shootSystem.Update(Player, _enemies);
-
-            // Remove inactive enemies
-            _enemies.RemoveAll(e => !e.IsActive);
         }
 
         public void Draw(ICanvas canvas, RectF dirtyRect)
@@ -167,9 +163,6 @@ namespace CodeRunner_Maui.Klasy
 
             return (x, y);
         }
-
-        // Metoda sprawdzająca, czy dana pozycja jest ścieżką
-        // Metoda sprawdzająca, czy dana pozycja jest ścieżką
         public bool IsPath(float x, float y)
         {
             // Konwersja współrzędnych świata na indeksy siatki
@@ -389,7 +382,8 @@ namespace CodeRunner_Maui.Klasy
         {
             foreach (var enemy in _enemies)
             {
-                enemy.Draw(canvas, CameraOffsetX, CameraOffsetY);
+                if (enemy.IsActive)
+                    enemy.Draw(canvas, CameraOffsetX, CameraOffsetY);
             }
         }
 
@@ -449,17 +443,66 @@ namespace CodeRunner_Maui.Klasy
         {
             if (Player == null) return;
 
-            // Rysowanie gracza z uwzględnieniem offsetu kamery
             float adjustedX = Player.X - CameraOffsetX;
             float adjustedY = Player.Y - CameraOffsetY;
 
-            canvas.FillColor = Colors.Blue;
-            canvas.FillRectangle(adjustedX, adjustedY, Player.Width, Player.Height);
+            // Efekt nietykalności - miganie
+            if (!Player.IsInvulnerable || DateTime.Now.Millisecond % 200 < 100)
+            {
+                canvas.FillColor = Colors.Blue;
+                canvas.FillRectangle(adjustedX, adjustedY, Player.Width, Player.Height);
+            }
 
-            // Dodaj obramowanie dla lepszej widoczności
             canvas.StrokeColor = Colors.Black;
             canvas.StrokeSize = 2;
             canvas.DrawRectangle(adjustedX, adjustedY, Player.Width, Player.Height);
+
+            DrawHealthBar(canvas, adjustedX, adjustedY);
+        }
+
+        public void DrawHealthBar(ICanvas canvas, float playerX, float playerY)
+        {
+            if (Player == null) return;
+
+            // Konfiguracja paska życia
+            float healthBarWidth = Player.Width;
+            float healthBarHeight = 6;
+            float healthBarOffsetY = 8;
+
+            // Pozycja paska życia
+            float healthBarX = playerX;
+            float healthBarY = playerY - healthBarOffsetY - healthBarHeight;
+
+            // Tło paska życia (czerwone)
+            canvas.FillColor = Colors.DarkRed;
+            canvas.FillRectangle(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
+
+            // Obramowanie
+            canvas.StrokeColor = Colors.Black;
+            canvas.StrokeSize = 1;
+            canvas.DrawRectangle(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
+
+            // Aktualne życie
+            if (Player.Lives > 0)
+            {
+                float healthPercentage = (float)Player.Lives / Player.MaxLives;
+                float currentHealthWidth = healthPercentage * healthBarWidth;
+
+                // Zmiana koloru w zależności od ilości życia
+                canvas.FillColor = healthPercentage > 0.6f ? Colors.Green :
+                                  healthPercentage > 0.3f ? Colors.Orange :
+                                  Colors.Red;
+
+                canvas.FillRectangle(healthBarX, healthBarY, currentHealthWidth, healthBarHeight);
+            }
+
+            // Tekst z ilością życia
+            canvas.FontColor = Colors.White;
+            canvas.FontSize = 10;
+            canvas.DrawString($"{Player.Lives}/{Player.MaxLives}",
+                             healthBarX + healthBarWidth / 2,
+                             healthBarY - 2,
+                             HorizontalAlignment.Center);
         }
 
         private List<Enemy> _enemies = new List<Enemy>();
@@ -472,5 +515,14 @@ namespace CodeRunner_Maui.Klasy
                    IsPath(x, y + height - 1) &&
                    IsPath(x + width - 1, y + height - 1);
         }
+
+        public event Action EnemiesChanged;
+
+        public void RemoveEnemy(Enemy enemy)
+        {
+            _enemies.Remove(enemy);
+            EnemiesChanged?.Invoke();
+        }
+
     }
 }

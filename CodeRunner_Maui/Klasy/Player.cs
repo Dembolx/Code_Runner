@@ -9,18 +9,74 @@ namespace CodeRunner_Maui.Klasy
         public float Y { get; set; }
         public int Width { get; private set; }
         public int Height { get; private set; }
+        public int Lives {  get; set; }
 
         private Plansza _plansza;
 
-        public Player(Plansza plansza, int width = 32, int height = 32)
+        public int MaxLives { get; private set; }
+        public bool IsInvulnerable { get; private set; }
+        public int InvulnerabilityTimer { get; private set; }
+
+        private const int INVULNERABILITY_DURATION = 120; // 2 sekundy przy 60 FPS
+
+        public ICanvas _canvas;
+
+        public Player(Plansza plansza, int width = 32, int height = 32, ICanvas canvas = null)
         {
             _plansza = plansza;
             Width = width;
             Height = height;
-
-            // Początkowa pozycja zostanie ustawiona przez Plansza.PlacePlayerOnPath()
+            MaxLives = 5;
+            Lives = MaxLives;
+            IsInvulnerable = false;
+            InvulnerabilityTimer = 0;
             X = 0;
             Y = 0;
+            _canvas = canvas;
+        }
+
+        public void TakeDamage(int damage = 1)
+        {
+            Lives -= damage;
+
+            // Efekt wizualny
+            if (_canvas != null)
+            {
+                _canvas.FillColor = Colors.Red;
+                _canvas.FillRectangle(X, Y, Width, Height);
+            }
+        }
+
+        public void Update()
+        {
+            if (IsInvulnerable)
+            {
+                InvulnerabilityTimer--;
+                if (InvulnerabilityTimer <= 0)
+                {
+                    IsInvulnerable = false;
+                }
+            }
+        }
+
+        public bool IsDead()
+        {
+            return Lives <= 0;
+        }
+
+        public void Heal(int amount = 1)
+        {
+            Lives += amount;
+            if (Lives > MaxLives) Lives = MaxLives;
+        }
+
+        // Sprawdza kolizję z prostokątem (np. wrogiem)
+        public bool CollidesWith(float otherX, float otherY, int otherWidth, int otherHeight)
+        {
+            return X < otherX + otherWidth &&
+                   X + Width > otherX &&
+                   Y < otherY + otherHeight &&
+                   Y + Height > otherY;
         }
 
         // Metoda próbująca poruszyć gracza w podanym kierunku

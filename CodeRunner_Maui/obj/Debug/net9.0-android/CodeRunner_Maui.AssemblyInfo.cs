@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CodeRunner_Maui")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0+b08da2e6c72733b699b2db5cf7dd4d3cd4b7e72a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0+0fdb0f9294d4ea3486b31790ae0beb5d9f355c42")]
 [assembly: System.Reflection.AssemblyProductAttribute("CodeRunner_Maui")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CodeRunner_Maui")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
